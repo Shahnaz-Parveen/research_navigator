@@ -57,14 +57,27 @@ def login():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-        if user is None or not user.check_password(password):
-            flash('Invalid email or password')
+        try:
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            
+            if not email or not password:
+                flash('Email and password are required')
+                return redirect(url_for('login'))
+            
+            user = User.query.filter_by(email=email).first()
+            if user is None or not user.check_password(password):
+                flash('Invalid email or password')
+                return redirect(url_for('login'))
+            
+            login_user(user)
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            print(f"Login error: {e}")
+            flash('An error occurred during login. Please try again.')
             return redirect(url_for('login'))
-        login_user(user)
-        return redirect(url_for('dashboard'))
+            
     return render_template('auth/login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -73,20 +86,36 @@ def register():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        email = request.form['email']
-        name = request.form['name']
-        password = request.form['password']
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered')
+        try:
+            email = request.form.get('email', '').strip()
+            name = request.form.get('name', '').strip()
+            password = request.form.get('password', '')
+            
+            # Validation
+            if not email or not name or not password:
+                flash('All fields are required')
+                return redirect(url_for('register'))
+            
+            # Check if user exists
+            if User.query.filter_by(email=email).first():
+                flash('Email already registered')
+                return redirect(url_for('register'))
+                
+            # Create user
+            user = User(email=email, name=name)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            
+            flash('Congratulations, you are now a registered user!')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Registration error: {e}")
+            flash('An error occurred during registration. Please try again.')
             return redirect(url_for('register'))
             
-        user = User(email=email, name=name)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
     return render_template('auth/register.html')
 
 @app.route('/dashboard')
