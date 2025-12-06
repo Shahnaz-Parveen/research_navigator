@@ -8,4 +8,4 @@ spacy>=3.7.0
 pypdf==3.17.1
 gunicorn==21.2.0
 faiss-cpu==1.13.1
-sentence-transformers==2.2.2
+sentence-transformers==3.3.1
