@@ -13,6 +13,11 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
+
+# Ensure database tables exist on startup
+with app.app_context():
+    db.create_all()
+
 login = LoginManager(app)
 login.login_view = 'login'
 
