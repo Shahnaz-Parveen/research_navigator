@@ -121,24 +121,38 @@ def register():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    query = request.args.get('q')
-    engine = get_search_engine()
-    
-    if query and engine:
-        results = engine.search(query) # List of (id, score)
-        if not results:
-            documents = []
-            flash(f'No semantic matches found for "{query}".')
-        else:
-            doc_ids = [r[0] for r in results]
-            documents = []
-            for doc_id in doc_ids:
-                d = db.session.get(Document, doc_id)
-                if d: documents.append(d)
-    else:
-        documents = Document.query.order_by(Document.ingestion_date.desc()).limit(20).all()
+    try:
+        query = request.args.get('q')
+        engine = None
         
-    return render_template('dashboard.html', documents=documents)
+        try:
+            engine = get_search_engine()
+        except Exception as e:
+            print(f"Search engine failed: {e}")
+        
+        if query and engine:
+            results = engine.search(query) # List of (id, score)
+            if not results:
+                documents = []
+                flash(f'No semantic matches found for "{query}".')
+            else:
+                doc_ids = [r[0] for r in results]
+                documents = []
+                for doc_id in doc_ids:
+                    d = db.session.get(Document, doc_id)
+                    if d: documents.append(d)
+        else:
+            documents = Document.query.order_by(Document.ingestion_date.desc()).limit(20).all()
+            
+        return render_template('dashboard.html', documents=documents)
+        
+    except Exception as e:
+        print(f"Dashboard error: {e}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading dashboard')
+        # Return empty dashboard instead of crashing
+        return render_template('dashboard.html', documents=[])
 
 @app.route('/document/<int:id>')
 @login_required
