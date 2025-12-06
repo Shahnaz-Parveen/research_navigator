@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width: 900px;"> <!-- Limited width for better readability -->
+    <div style="margin-bottom: 2rem;">
+        <a href="{{ url_for('dashboard') }}" style="color: var(--text-muted); text-decoration: none;">&larr; Back to
+            Dashboard</a>
+    </div>
+
+    <div class="paper-card" style="cursor: default; transform: none; border-color: var(--primary);">
+        <h1 class="page-title" style="margin-bottom: 1rem;">{{ doc.title }}</h1>
+
+        <!-- Meta Row -->
+        <div class="paper-meta"
+            style="border: none; padding: 0; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+            <span style="color: var(--text-muted);">Published: {{ doc.published_date.strftime('%Y-%m-%d') if
+                doc.published_date else 'Unknown' }}</span>
+            <a href="{{ doc.source_url }}" target="_blank" class="btn" style="width: auto; padding: 0.5rem 1.5rem;">Read
+                Full Paper &rarr;</a>
+        </div>
+
+        <!-- AI Summary -->
+        {% if summary %}
+        <div
+            style="margin-bottom: 2rem; background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent); border-left: 4px solid var(--primary); padding: 1.5rem; border-radius: 0 8px 8px 0;">
+            <h3
+                style="margin-bottom: 0.5rem; color: var(--primary); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                ✨ AI Summary (TL;DR)
+            </h3>
+            <p style="line-height: 1.7; font-size: 1.05rem; color: #e2e8f0;">{{ summary }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Abstract -->
+        <div style="margin-bottom: 2rem;">
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Abstract</h3>
+            <p style="line-height: 1.8; color: #cbd5e1; font-size: 1.05rem;">{{ doc.abstract }}</p>
+        </div>
+
+        <!-- Extracted Entities (Now below Abstract) -->
+        <div
+            style="margin-bottom: 2rem; padding: 1.5rem; background: #0f172a; border-radius: 8px; border: 1px solid var(--border);">
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Extracted Concepts</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for entity in doc.entities %}
+                <span class="badge {{ entity.label|lower }}">{{ entity.text }}</span>
+                {% else %}
+                <p style="color: var(--text-muted); font-style: italic;">No specific entities extracted.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Word Analysis Chart -->
+        {% if chart_data %}
+        <div style="margin-bottom: 2rem;">
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Keyword Analytics</h3>
+            <div
+                style="height: 250px; background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                <canvas id="wordChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Citation Box -->
+        <div style="margin-top: 3rem;">
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Cite this Paper</h3>
+            <div style="background: #020617; border: 1px solid var(--border); border-radius: 8px; position: relative;">
+                <pre id="bibtex-code"
+                    style="padding: 1.5rem; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.9rem; color: #94a3b8; margin: 0;">@article{paper_{{ doc.id }},
+title = { {{ doc.title }} },
+author = {Unknown},
+year = { {{ doc.published_date.year if doc.published_date else '2023' }} },
+url = { {{ doc.source_url }} }
+}</pre>
+                <button onclick="copyBibtex()"
+                    style="position: absolute; top: 0.5rem; right: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 0.25rem 0.75rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">
+                    Copy BibTeX
+                </button>
+            </div>
+            <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">
+                *Use this code to easily reference this paper in your own research documents (LaTeX/Overleaf).
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Recommendations Section -->
+    <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+        <h3 style="color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📚</span> Similar Papers
+        </h3>
+
+        {% if related_docs %}
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+            {% for related in related_docs %}
+            <a href="{{ url_for('document_detail', id=related.id) }}" class="paper-card" style="text-decoration: none;">
+                <h4 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1rem;">{{ related.title }}</h4>
+                <p
+                    style="color: var(--text-muted); font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    {{ related.abstract }}
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">No similar papers found yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background: var(--bg-dark);
+        border: 1px solid var(--border);
+    }
+
+    .badge.org {
+        background: rgba(59, 130, 246, 0.1);
+        color: #60a5fa;
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .badge.person {
+        background: rgba(236, 72, 153, 0.1);
+        color: #f472b6;
+        border-color: rgba(236, 72, 153, 0.2);
+    }
+
+    .badge.gpe {
+        background: rgba(245, 158, 11, 0.1);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .badge.method {
+        background: rgba(16, 185, 129, 0.1);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .badge.task {
+        background: rgba(139, 92, 246, 0.1);
+        color: #a78bfa;
+        border-color: rgba(139, 92, 246, 0.2);
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function copyBibtex() {
+        const text = document.getElementById('bibtex-code').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('button[onclick="copyBibtex()"]');
+            const original = btn.innerText;
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = original, 2000);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        {% if chart_data %}
+        const ctx = document.getElementById('wordChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels | tojson }},
+        datasets: [{
+            label: 'Word Count',
+            data: {{ chart_data | tojson }},
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        barThickness: 20
+                }]
+            },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+        }
+    }
+        });
+    {% endif %}
+    });
+</script>
+{% endblock %}

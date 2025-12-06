@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="page-title" style="margin-bottom: 2rem;">Contribute Knowledge</h1>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+        <!-- Manual Entry Column -->
+        <div class="paper-card" style="transform: none; cursor: default; border-color: var(--primary);">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Manual Entry</h2>
+            <form method="POST">
+                <input type="hidden" name="action" value="manual">
+
+                <div class="form-group">
+                    <label class="form-label">Paper Title</label>
+                    <input type="text" name="title" class="form-input" required
+                        placeholder="e.g. Attention Is All You Need">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Source URL (Optional)</label>
+                    <input type="url" name="source_url" class="form-input" placeholder="https://arxiv.org/abs/...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Abstract</label>
+                    <textarea name="abstract" class="form-input" rows="8" required
+                        placeholder="Paste the abstract here..." style="resize: vertical;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Published Date (Optional)</label>
+                    <input type="date" name="published_date" class="form-input">
+                </div>
+
+                <button type="submit" class="btn">Add Paper & Extract Entities</button>
+            </form>
+        </div>
+
+        <!-- Auto-Ingest Column -->
+        <div class="paper-card" style="transform: none; cursor: default; height: fit-content;">
+            <h2 style="margin-bottom: 1.5rem; color: #60a5fa;">Auto-Fetch from ArXiv</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                Expand the database by automatically fetching the latest papers from ArXiv.org based on a topic.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="action" value="ingest">
+
+                <div class="form-group">
+                    <label class="form-label">Search Topic</label>
+                    <input type="text" name="query" class="form-input" value="artificial intelligence" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Number of Papers</label>
+                    <select name="max_results" class="form-input">
+                        <option value="5">5 Papers</option>
+                        <option value="10" selected>10 Papers</option>
+                        <option value="20">20 Papers</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn" style="background-color: #3b82f6;">Fetch Papers</button>
+            </form>
+        </div>
+
+        <!-- PDF Upload Column -->
+        <div class="paper-card" style="transform: none; cursor: default; height: fit-content;">
+            <h2 style="margin-bottom: 1.5rem; color: #ec4899;">Upload PDF</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                Upload a PDF file to automatically extract text and entities.
+            </p>
+
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="upload">
+
+                <div class="form-group">
+                    <label class="form-label">Select PDF File</label>
+                    <input type="file" name="file" class="form-input" accept=".pdf" required style="padding: 0.5rem;">
+                </div>
+
+                <button type="submit" class="btn" style="background-color: #db2777;">Upload & Analyze</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

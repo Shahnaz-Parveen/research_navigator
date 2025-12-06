@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*$py.class
+instance/
+.env
+.venv
+env/
+venv/
+*.db
+*.sqlite3
+static/uploads/*
+!static/uploads/.gitkeep
+static/profile_pics/*
+!static/profile_pics/default.jpg

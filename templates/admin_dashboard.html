@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="page-title" style="margin-bottom: 2rem;">System Administration</h1>
+
+    <div class="grid"
+        style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="paper-card" style="text-align: center; border-color: var(--primary);">
+            <h3
+                style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Total Papers</h3>
+            <div style="font-size: 3rem; font-weight: 700; color: var(--text-main);">{{ total_papers }}</div>
+        </div>
+
+        <div class="paper-card" style="text-align: center; border-color: #3b82f6;">
+            <h3
+                style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Extracted Entities</h3>
+            <div style="font-size: 3rem; font-weight: 700; color: var(--text-main);">{{ total_entities }}</div>
+        </div>
+
+        <div class="paper-card" style="text-align: center; border-color: #f472b6;">
+            <h3
+                style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Registered Users</h3>
+            <div style="font-size: 3rem; font-weight: 700; color: var(--text-main);">{{ total_users }}</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main);">System Status</h2>
+        <div class="paper-card">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
+                <strong>Search Engine:</strong> <span style="color: var(--text-muted);">Lazy Loaded (Ready)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
+                <strong>Database:</strong> <span style="color: var(--text-muted);">Connected (SQLite)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
+                <strong>Model:</strong> <span style="color: var(--text-muted);">all-MiniLM-L6-v2</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

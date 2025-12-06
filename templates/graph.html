@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container"
+    style="max-width: 100%; padding: 0; height: calc(100vh - 80px); display: flex; flex-direction: column;">
+    <div
+        style="padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: var(--bg-card); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title" style="margin: 0; font-size: 1.5rem;">Knowledge Graph</h1>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Visualizing connections between Papers
+                and Concepts.</p>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+            <span
+                style="display: inline-block; width: 10px; height: 10px; background: #3b82f6; border-radius: 50%; margin-right: 5px;"></span>
+            Paper
+            <span
+                style="display: inline-block; width: 10px; height: 10px; background: #e0e7ff; border-radius: 50%; margin-right: 5px; margin-left: 10px;"></span>
+            Entity
+        </div>
+    </div>
+
+    <div id="network" style="flex: 1; background: #0f111a; min-height: 600px;"></div>
+</div>
+
+<!-- Use local script if available, fallback to CDN if needed (though local should work) -->
+<script src="{{ url_for('static', filename='js/vis-network.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('network');
+
+        // Check if vis is loaded
+        if (typeof vis === 'undefined') {
+            container.innerHTML = '<div style="color:red; padding:2rem;">Error: Visualization library failed to load. Please check your internet connection or local files.</div>';
+            return;
+        }
+
+        fetch("{{ url_for('graph_data') }}")
+            .then(response => response.json())
+            .then(data => {
+                if (!data.nodes || data.nodes.length === 0) {
+                    container.innerHTML = '<div style="color:#aaa; padding:2rem; text-align:center;">No data to display. Add some papers first!</div>';
+                    return;
+                }
+
+                const nodes = new vis.DataSet(data.nodes);
+                const edges = new vis.DataSet(data.edges);
+
+                const options = {
+                    nodes: {
+                        shape: 'dot',
+                        size: 20,
+                        font: { size: 14, color: '#ffffff' },
+                        borderWidth: 2
+                    },
+                    edges: {
+                        width: 1,
+                        color: { color: 'rgba(255, 255, 255, 0.1)', highlight: '#3b82f6' },
+                        smooth: { type: 'continuous' }
+                    },
+                    groups: {
+                        paper: {
+                            color: { background: '#3b82f6', border: '#2563eb' },
+                            size: 30,
+                            shape: 'dot'
+                        },
+                        entity: {
+                            color: { background: 'rgba(255, 255, 255, 0.1)', border: 'rgba(255, 255, 255, 0.2)' },
+                            size: 15,
+                            shape: 'dot',
+                            font: { color: '#94a3b8', size: 12 }
+                        }
+                    },
+                    physics: {
+                        stabilization: false,
+                        barnesHut: {
+                            gravitationalConstant: -2000,
+                            springConstant: 0.04,
+                            springLength: 95
+                        }
+                    },
+                    interaction: { hover: true, tooltipDelay: 200 }
+                };
+
+                const network = new vis.Network(container, { nodes, edges }, options);
+
+                network.on("doubleClick", function (params) {
+                    if (params.nodes.length === 1) {
+                        const nodeId = params.nodes[0];
+                        if (nodeId.startsWith('doc_')) {
+                            const docId = nodeId.split('_')[1];
+                            window.location.href = `/document/${docId}`;
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                console.error("Error loading graph data:", err);
+                container.innerHTML = `<div style="color:red; padding:2rem;">Error loading data: ${err.message}</div>`;
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="auth-card" style="max-width: 700px; margin: 0 auto; padding: 0; overflow: hidden;">
+
+        <!-- Header / Banner placeholder -->
+        <div style="height: 120px; background: linear-gradient(to right, var(--primary), #3b82f6);"></div>
+
+        <div style="padding: 2rem; position: relative;">
+
+            <!-- Avatar Section -->
+            <div style="position: absolute; top: -60px; left: 2rem;">
+                <div class="profile-pic-container" style="position: relative; width: 120px; height: 120px;">
+                    <img src="{{ image_file }}" alt="Profile"
+                        style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--bg-card); object-fit: cover; background: #333;">
+
+                    <!-- Edit overlay -->
+                    <label for="profile_image"
+                        style="position: absolute; bottom: 0; right: 0; background: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--bg-card);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                            </path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Header Info -->
+            <div style="margin-left: 140px; margin-bottom: 2rem;">
+                <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem;">{{ current_user.name }}</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">{{ current_user.email }}</p>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 2rem;">
+
+            <!-- Edit Form -->
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="profile_image" id="profile_image" style="display: none;"
+                    onchange="this.form.submit()">
+
+                <div class="grid" style="grid-template-columns: 1fr; gap: 1.5rem;">
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-input" value="{{ current_user.name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea name="bio" class="form-input" rows="4"
+                            placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Save Changes</button>
+                </div>
+            </form>
+
+            <!-- Stats Section -->
+            <div style="margin-top: 3rem;">
+                <h3
+                    style="color: var(--text-main); margin-bottom: 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+                    Account Overview</h3>
+                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div
+                        style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid var(--border);">
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Joined</div>
+                        <div style="font-size: 1.1rem; font-weight: 600;">{{ current_user.created_at.strftime('%B %Y')
+                            }}</div>
+                    </div>
+                    <div
+                        style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid var(--border);">
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Account Type
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: 600; color: #60a5fa;">Standard Member</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

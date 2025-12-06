@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Navigator | Discover the Hidden Connections</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Landing Page Specific Overrides */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* No scroll on landing */
+            background-color: #0B0E14;
+            /* Deep space black */
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .landing-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+            width: 80%;
+            max-width: 900px;
+            pointer-events: none;
+            /* Let clicks pass through to canvas if needed, but button needs events */
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fadeUp 1.2s ease-out forwards;
+            text-shadow: 0 0 30px rgba(165, 180, 252, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #94a3b8;
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeUp 1.2s ease-out 0.3s forwards;
+        }
+
+        .cta-container {
+            pointer-events: auto;
+            /* Re-enable clicks */
+            opacity: 0;
+            animation: fadeUp 1.2s ease-out 0.6s forwards;
+        }
+
+        .magic-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* Bouncy */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .magic-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .magic-btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            background: rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .magic-btn:hover::before {
+            left: 100%;
+        }
+
+        /* 3D Floating Cards Decoration */
+        .float-card {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="canvas-container">
+        <canvas id="network-canvas"></canvas>
+    </div>
+
+    <!-- Floating Decorative Elements -->
+    <div class="float-card" style="top: 20%; left: 15%; animation-delay: 0s;">📄</div>
+    <div class="float-card" style="top: 70%; left: 10%; animation-delay: 1s;">🧬</div>
+    <div class="float-card" style="top: 30%; right: 15%; animation-delay: 2s;">🧠</div>
+    <div class="float-card" style="top: 80%; right: 20%; animation-delay: 3s;">🕸️</div>
+
+    <div class="landing-content">
+        <h1 class="hero-title">Research Navigator</h1>
+        <p class="hero-subtitle">Turn your Papers into Knowledge. <br> Discover the hidden connections in science.</p>
+
+        <div class="cta-container">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}" class="magic-btn">Enter Dashboard 🚀</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="magic-btn">Start Exploring ✨</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Particle Network Animation
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(165, 180, 252, 0.5)'; // Indigo-ish white
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < 60; i++) { // Number of particles
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw connections
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 200) { // Connect if close
+                        ctx.strokeStyle = `rgba(165, 180, 252, ${1 - distance / 200})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Mouse Interaction (Constellation effect)
+            // Ideally we track mouse position, but independent movement is cleaner for ambient bg
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            init();
+        });
+
+        resize();
+        init();
+        animate();
+    </script>
+</body>
+
+</html>
