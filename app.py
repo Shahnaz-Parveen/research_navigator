@@ -13,11 +13,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
-
-# Ensure database tables exist on startup
-with app.app_context():
-    db.create_all()
-
 login = LoginManager(app)
 login.login_view = 'login'
 
@@ -57,27 +52,14 @@ def login():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        try:
-            email = request.form.get('email', '').strip()
-            password = request.form.get('password', '')
-            
-            if not email or not password:
-                flash('Email and password are required')
-                return redirect(url_for('login'))
-            
-            user = User.query.filter_by(email=email).first()
-            if user is None or not user.check_password(password):
-                flash('Invalid email or password')
-                return redirect(url_for('login'))
-            
-            login_user(user)
-            return redirect(url_for('dashboard'))
-            
-        except Exception as e:
-            print(f"Login error: {e}")
-            flash('An error occurred during login. Please try again.')
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user is None or not user.check_password(password):
+            flash('Invalid email or password')
             return redirect(url_for('login'))
-            
+        login_user(user)
+        return redirect(url_for('dashboard'))
     return render_template('auth/login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -86,73 +68,43 @@ def register():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        try:
-            email = request.form.get('email', '').strip()
-            name = request.form.get('name', '').strip()
-            password = request.form.get('password', '')
-            
-            # Validation
-            if not email or not name or not password:
-                flash('All fields are required')
-                return redirect(url_for('register'))
-            
-            # Check if user exists
-            if User.query.filter_by(email=email).first():
-                flash('Email already registered')
-                return redirect(url_for('register'))
-                
-            # Create user
-            user = User(email=email, name=name)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-            
-            flash('Congratulations, you are now a registered user!')
-            return redirect(url_for('login'))
-            
-        except Exception as e:
-            db.session.rollback()
-            print(f"Registration error: {e}")
-            flash('An error occurred during registration. Please try again.')
+        email = request.form['email']
+        name = request.form['name']
+        password = request.form['password']
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered')
             return redirect(url_for('register'))
             
+        user = User(email=email, name=name)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
     return render_template('auth/register.html')
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    try:
-        query = request.args.get('q')
-        engine = None
-        
-        try:
-            engine = get_search_engine()
-        except Exception as e:
-            print(f"Search engine failed: {e}")
-        
-        if query and engine:
-            results = engine.search(query) # List of (id, score)
-            if not results:
-                documents = []
-                flash(f'No semantic matches found for "{query}".')
-            else:
-                doc_ids = [r[0] for r in results]
-                documents = []
-                for doc_id in doc_ids:
-                    d = db.session.get(Document, doc_id)
-                    if d: documents.append(d)
+    query = request.args.get('q')
+    engine = get_search_engine()
+    
+    if query and engine:
+        results = engine.search(query) # List of (id, score)
+        if not results:
+            documents = []
+            flash(f'No semantic matches found for "{query}".')
         else:
-            documents = Document.query.order_by(Document.ingestion_date.desc()).limit(20).all()
-            
-        return render_template('dashboard.html', documents=documents)
+            doc_ids = [r[0] for r in results]
+            documents = []
+            for doc_id in doc_ids:
+                d = db.session.get(Document, doc_id)
+                if d: documents.append(d)
+    else:
+        documents = Document.query.order_by(Document.ingestion_date.desc()).limit(20).all()
         
-    except Exception as e:
-        print(f"Dashboard error: {e}")
-        import traceback
-        traceback.print_exc()
-        flash('Error loading dashboard')
-        # Return empty dashboard instead of crashing
-        return render_template('dashboard.html', documents=[])
+    return render_template('dashboard.html', documents=documents)
 
 @app.route('/document/<int:id>')
 @login_required
