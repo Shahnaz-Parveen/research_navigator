@@ -9,10 +9,12 @@ def load_model():
         try:
             nlp = spacy.load("en_core_web_sm")
         except OSError:
-            print("Downloading model...")
+            print("Model 'en_core_web_sm' not found, attempting download...")
             from spacy.cli import download
             download("en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
+    if nlp is None:
+        raise RuntimeError("Failed to load spaCy model 'en_core_web_sm'.")
 
 def extract_entities(text):
     """
@@ -86,5 +88,10 @@ def generate_summary(text, num_sentences=3):
                     
     # Select top N sentences
     import heapq
+    if not sentence_scores:
+        # Fallback: Just return the first few sentences if scoring fails
+        sentences = [sent.text for sent in doc.sents]
+        return " ".join(sentences[:num_sentences])
+        
     summary_sentences = heapq.nlargest(num_sentences, sentence_scores, key=sentence_scores.get)
     return " ".join([sent.text for sent in summary_sentences])

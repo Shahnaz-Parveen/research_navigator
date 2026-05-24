@@ -153,6 +153,9 @@ def document_detail(id):
     try:
         summary = nlp_engine.generate_summary(doc.abstract)
     except Exception as e:
+        print(f"ERROR summarizing {doc.title}: {e}")
+        import traceback
+        traceback.print_exc()
         summary = "Summary generation unavailable."
 
     return render_template('document_detail.html', doc=doc, related_docs=related_docs, chart_labels=chart_labels, chart_data=chart_data, summary=summary)
