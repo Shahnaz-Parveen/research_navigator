@@ -12,7 +12,17 @@ from search_engine import SearchEngine
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Ensure instance folder exists for SQLite
+instance_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
+if not os.path.exists(instance_path):
+    os.makedirs(instance_path)
+
 db.init_app(app)
+
+# Ensure database tables exist immediately
+with app.app_context():
+    db.create_all()
+
 login = LoginManager(app)
 login.login_view = 'login'
 
@@ -54,12 +64,17 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        print(f"DEBUG LOGIN Attempt: {email}") # DEBUG
+        
         user = User.query.filter_by(email=email).first()
-        if user is None or not user.check_password(password):
+        if user and user.check_password(password):
+            print(f"DEBUG: Login Success for {email}")
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            print(f"DEBUG: Login Failed for {email}")
             flash('Invalid email or password')
             return redirect(url_for('login'))
-        login_user(user)
-        return redirect(url_for('dashboard'))
     return render_template('auth/login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -416,6 +431,4 @@ def chat_api():
         return {"response": "I'm having a little trouble thinking right now. Please try again. 🤕"}, 200
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
