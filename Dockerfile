@@ -14,6 +14,9 @@ COPY --chown=1000:1000 . /app
 # We use --no-cache-dir to keep the image small
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download the spaCy model during build to avoid runtime permission issues
+RUN python -m spacy download en_core_web_sm
+
 # Create a non-root user with ID 1000
 RUN useradd -m -u 1000 user
 # Switch to user 1000
