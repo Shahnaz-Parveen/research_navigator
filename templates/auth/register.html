@@ -5,6 +5,7 @@
     <div class="auth-card">
         <h2 class="auth-title">Create Account</h2>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="form-label">Full Name</label>
                 <input type="text" name="name" class="form-input" required placeholder="John Doe">
@@ -15,7 +16,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-input" required placeholder="••••••••">
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" class="form-input" required
+                        placeholder="••••••••">
+                    <button type="button" onclick="togglePassword('password')"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--primary); cursor: pointer; font-size: 1.2rem;">👁️</button>
+                </div>
             </div>
             <button type="submit" class="btn">Create Account</button>
         </form>
@@ -24,4 +30,11 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+</script>
 {% endblock %}

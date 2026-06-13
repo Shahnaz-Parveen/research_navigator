@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem;">
+        <h1 class="page-title">🛡️ Admin Monitoring Panel</h1>
+        <p style="color: var(--text-muted);">Real-time monitoring of users, documents, and extracted data.</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <!-- Stats Cards -->
+        <div class="paper-card" style="cursor: default; transform: none; min-height: auto;">
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem;">Total Users</h3>
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-main);">{{ users|length }}</div>
+        </div>
+        <div class="paper-card" style="cursor: default; transform: none; min-height: auto;">
+            <h3 style="color: var(--accent); margin-bottom: 0.5rem;">Total Papers</h3>
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-main);">{{ documents|length }}</div>
+        </div>
+        <div class="paper-card" style="cursor: default; transform: none; min-height: auto;">
+            <h3 style="color: #10b981; margin-bottom: 0.5rem;">Entities Extracted</h3>
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-main);">{{ entities|length }}</div>
+        </div>
+    </div>
+
+    <div class="paper-card" style="cursor: default; transform: none; padding: 2rem;">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Registered Users</h2>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="padding: 1rem; color: var(--text-muted);">Name</th>
+                        <th style="padding: 1rem; color: var(--text-muted);">Email</th>
+                        <th style="padding: 1rem; color: var(--text-muted);">Joined On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; font-weight: 500;">{{ user.name }}</td>
+                        <td style="padding: 1rem; color: var(--primary);">{{ user.email }}</td>
+                        <td style="padding: 1rem; color: var(--text-muted); font-size: 0.9rem;">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    th { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+</style>
+{% endblock %}

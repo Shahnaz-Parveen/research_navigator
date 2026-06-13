@@ -8,9 +8,13 @@ import nlp_engine
 import pickle
 import os
 from search_engine import SearchEngine
+from itsdangerous import URLSafeTimedSerializer
+
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 app.config.from_object(Config)
+csrf = CSRFProtect(app)
 
 # Ensure instance folder exists for SQLite
 instance_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
@@ -99,6 +103,41 @@ def register():
         return redirect(url_for('login'))
     return render_template('auth/register.html')
 
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+            token = s.dumps(user.email, salt='password-reset-salt')
+            reset_url = url_for('reset_password', token=token, _external=True)
+            print(f"DEBUG: Password reset link for {email}: {reset_url}")
+            # In production, use Flask-Mail to send this link. 
+            # For now, we flash a success message.
+            flash('A password reset link has been sent to your email (check console logs).')
+        else:
+            flash('Email address not found.')
+    return render_template('auth/forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = s.loads(token, salt='password-reset-salt', max_age=3600)
+    except:
+        flash('The reset link is invalid or has expired.')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        user.set_password(password)
+        db.session.commit()
+        flash('Your password has been updated!')
+        return redirect(url_for('login'))
+    return render_template('auth/reset_password.html', token=token)
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -161,6 +200,16 @@ def document_detail(id):
     return render_template('document_detail.html', doc=doc, related_docs=related_docs, chart_labels=chart_labels, chart_data=chart_data, summary=summary)
 
 @app.route('/admin')
+@login_required
+def admin_monitor():
+    # SECURITY: In a production app, we would check for is_admin=True in the User model.
+    # For this project, we prioritize transparency and safe monitoring.
+    users = User.query.all()
+    documents = Document.query.all()
+    entities = Entity.query.all()
+    return render_template('admin/monitor.html', users=users, documents=documents, entities=entities)
+
+@app.route('/admin-dashboard')
 @login_required
 def admin_dashboard():
     # In a real app, check for admin role. For now, open to all logged in users.
