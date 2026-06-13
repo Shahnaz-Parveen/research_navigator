@@ -9,6 +9,7 @@ import pickle
 import os
 from search_engine import SearchEngine
 from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Mail, Message
 
 from flask_wtf.csrf import CSRFProtect
 
@@ -22,6 +23,7 @@ if not os.path.exists(instance_path):
     os.makedirs(instance_path)
 
 db.init_app(app)
+mail = Mail(app)
 
 # Ensure database tables exist immediately
 with app.app_context():
@@ -112,10 +114,22 @@ def forgot_password():
             s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
             token = s.dumps(user.email, salt='password-reset-salt')
             reset_url = url_for('reset_password', token=token, _external=True)
-            print(f"DEBUG: Password reset link for {email}: {reset_url}")
-            # In production, use Flask-Mail to send this link. 
-            # For now, we flash a success message.
-            flash('A password reset link has been sent to your email (check console logs).')
+            
+            # Send real email
+            msg = Message('Password Reset Request - Research Navigator',
+                          sender=app.config['MAIL_USERNAME'],
+                          recipients=[email])
+            msg.body = f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request then simply ignore this email and no changes will be made.
+'''
+            try:
+                mail.send(msg)
+                flash('A password reset link has been sent to your email.')
+            except Exception as e:
+                print(f"ERROR: Failed to send email: {e}")
+                flash('Error sending email. Please contact support or try again later.')
         else:
             flash('Email address not found.')
     return render_template('auth/forgot_password.html')
