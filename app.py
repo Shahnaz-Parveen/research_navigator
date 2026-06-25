@@ -8,14 +8,8 @@ import nlp_engine
 import pickle
 import os
 from search_engine import SearchEngine
-from itsdangerous import URLSafeTimedSerializer
-from flask_mail import Mail, Message
-
-from flask_wtf.csrf import CSRFProtect
-
 app = Flask(__name__)
 app.config.from_object(Config)
-csrf = CSRFProtect(app)
 
 # Ensure instance folder exists for SQLite
 instance_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
@@ -23,7 +17,6 @@ if not os.path.exists(instance_path):
     os.makedirs(instance_path)
 
 db.init_app(app)
-mail = Mail(app)
 
 # Ensure database tables exist immediately
 with app.app_context():
@@ -105,52 +98,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('auth/register.html')
 
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        email = request.form['email']
-        user = User.query.filter_by(email=email).first()
-        if user:
-            s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-            token = s.dumps(user.email, salt='password-reset-salt')
-            reset_url = url_for('reset_password', token=token, _external=True)
-            
-            # Send real email
-            msg = Message('Password Reset Request - Research Navigator',
-                          sender=app.config['MAIL_USERNAME'],
-                          recipients=[email])
-            msg.body = f'''To reset your password, visit the following link:
-{reset_url}
-
-If you did not make this request then simply ignore this email and no changes will be made.
-'''
-            try:
-                mail.send(msg)
-                flash('A password reset link has been sent to your email.')
-            except Exception as e:
-                print(f"ERROR: Failed to send email: {e}")
-                flash('Error sending email. Please contact support or try again later.')
-        else:
-            flash('Email address not found.')
-    return render_template('auth/forgot_password.html')
-
-@app.route('/reset-password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-    try:
-        email = s.loads(token, salt='password-reset-salt', max_age=3600)
-    except:
-        flash('The reset link is invalid or has expired.')
-        return redirect(url_for('login'))
-    
-    if request.method == 'POST':
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-        user.set_password(password)
-        db.session.commit()
-        flash('Your password has been updated!')
-        return redirect(url_for('login'))
-    return render_template('auth/reset_password.html', token=token)
+# Routes for Forgot Password and Reset Password removed for simplification.
 
 @app.route('/dashboard')
 @login_required

@@ -9,7 +9,5 @@ pypdf==3.17.1
 gunicorn==21.2.0
 sentence-transformers==2.2.2
 faiss-cpu==1.8.0
-Flask-WTF==1.2.1
-Flask-Mail==0.9.1
 numpy<2.0.0
 huggingface-hub<0.25.0
