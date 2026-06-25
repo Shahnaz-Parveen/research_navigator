@@ -12,6 +12,9 @@ class User(UserMixin, db.Model):
     profile_image = db.Column(db.String(120), default='default.jpg')
     bio = db.Column(db.Text)
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -29,9 +32,15 @@ class Document(db.Model):
     
     entities = db.relationship('Entity', backref='document', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        super(Document, self).__init__(**kwargs)
+
 class Entity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(100), nullable=False)
     label = db.Column(db.String(50), nullable=False)
     doc_id = db.Column(db.Integer, db.ForeignKey('document.id'), nullable=False)
+
+    def __init__(self, **kwargs):
+        super(Entity, self).__init__(**kwargs)
 

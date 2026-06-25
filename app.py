@@ -365,6 +365,20 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    # In a simple app, we just delete the user. 
+    # If papers/entities were linked to user_id, we would delete them here.
+    # Currently, papers are global, but we can delete the core user record.
+    user = db.session.get(User, current_user.id)
+    if user:
+        logout_user()
+        db.session.delete(user)
+        db.session.commit()
+        flash('Your account has been successfully deleted.')
+    return redirect(url_for('index'))
+
 @app.route('/graph')
 @login_required
 def graph():
