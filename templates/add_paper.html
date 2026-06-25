@@ -10,6 +10,7 @@
         <div class="paper-card" style="transform: none; cursor: default; border-color: var(--primary);">
             <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Manual Entry</h2>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="manual">
 
                 <div class="form-group">

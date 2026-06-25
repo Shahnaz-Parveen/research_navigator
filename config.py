@@ -11,7 +11,7 @@ class Config:
     # Security: Cookie settings
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None' # Required for Hugging Face IFrames
 
     # Email (Flask-Mail) Configuration
     MAIL_SERVER = 'smtp.gmail.com'

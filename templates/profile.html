@@ -38,6 +38,7 @@
 
             <!-- Edit Form -->
             <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="file" name="profile_image" id="profile_image" style="display: none;"
                     onchange="this.form.submit()">
 
