@@ -18,9 +18,15 @@ if not os.path.exists(instance_path):
 
 db.init_app(app)
 
-# Ensure database tables exist immediately
+# Ensure database tables exist immediately and seed a default user
 with app.app_context():
     db.create_all()
+    # Check if a default user exists, if not, create one
+    if not User.query.filter_by(email='admin@example.com').first():
+        admin = User(email='admin@example.com', name='Navigator Admin')
+        admin.set_password('AdminPass123')
+        db.session.add(admin)
+        db.session.commit()
 
 login = LoginManager(app)
 login.login_view = 'login'
