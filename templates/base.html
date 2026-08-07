@@ -40,6 +40,12 @@
     </nav>
 
     <div class="content">
+        <!-- IFrame/SameSite Cookie Help Alert -->
+        <div id="iframe-helper-alert" style="display: none; max-width: 800px; margin: 1rem auto; padding: 1rem 1.5rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; color: #93c5fd; font-size: 0.95rem; line-height: 1.5; text-align: center;">
+            ⚠️ **Running inside Hugging Face Space portal?** If you experience login or logout issues (due to third-party cookie blocking), please 
+            <a href="https://shahnazslays-research-navigator.hf.space" target="_blank" style="color: #60a5fa; text-decoration: underline; font-weight: 600;">click here to open the application directly in a new tab</a>.
+        </div>
+
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <div style="max-width: 600px; margin: 1rem auto; padding: 0 1rem;">
@@ -65,6 +71,14 @@
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
             document.getElementById('theme-icon').innerText = '🌙';
+        }
+
+        // Detect if running inside Hugging Face Space parent IFrame
+        if (window.self !== window.top) {
+            const banner = document.getElementById('iframe-helper-alert');
+            if (banner) {
+                banner.style.display = 'block';
+            }
         }
     </script>
 
